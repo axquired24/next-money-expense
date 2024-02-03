@@ -1,0 +1,6 @@
+.tableWrapper table, 
+.tableWrapper th, 
+.tableWrapper td {
+  border: 1px solid white;
+  padding: 0.5rem 1rem;
+}
