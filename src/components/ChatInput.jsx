@@ -65,12 +65,13 @@ const ChatInput = ({setRowValues}) => {
     const parsedValues = valueInRow.map(splitAmountDesc).filter(x => !! x)
     
     if(inputValue && dateValue) {
-      setIsSyncing(true);
-      const isOk = await addExpense(parsedValues)
-      if (! isOk) {
-        setErrMsg("Failed to sync with AirTable")
-      } // endif
-      setIsSyncing(false);
+      // Uncomment to activate airtable
+      // setIsSyncing(true);
+      // const isOk = await addExpense(parsedValues)
+      // if (! isOk) {
+      //   setErrMsg("Failed to sync with AirTable")
+      // } // endif
+      // setIsSyncing(false);
 
       setRowValues(prev => {
         return [
