@@ -15,9 +15,14 @@ const useTelegram = () => {
     tokenBot = newToken;
   }
 
-  async function sendMessageToSupergroup({chatId, message, message_thread_id=null}) {
+  async function sendMessageToSupergroup({
+    chat_id, 
+    message, 
+    message_thread_id=null,
+    reply_parameters=null
+  }) {
     const payload = {
-      chat_id: chatId,
+      chat_id,
       text: message,
       parse_mode: "markdown"
     };
@@ -26,23 +31,26 @@ const useTelegram = () => {
     if (message_thread_id) {
       payload.is_topic_message = true;
       payload.message_thread_id = message_thread_id;
-    }
+    } // endif
+
+    if (reply_parameters) {
+      // chat_id & message_id
+      payload.reply_parameters = reply_parameters
+    } // endif
 
     try {
       const response = await axios.post(
         URL,
         payload,
         {
-          headers: {
-        "Content-Type": "application/json"
-          }
+          headers: { "Content-Type": "application/json" }
         }
       );
 
       const data = response.data;
       return data;
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error sending message:", error?.response);
       throw error;
     }
   }
@@ -62,7 +70,6 @@ const useTelegram = () => {
       );
 
       const data = response.data;
-      console.log({ data });
       return data;
     } catch (error) {
       console.error("Error enabling webhook:", error);
@@ -77,7 +84,6 @@ const useTelegram = () => {
       );
 
       const data = response.data;
-      console.log({ data });
       return data;
     } catch (error) {
       console.error("Error removing webhook:", error);
@@ -100,26 +106,50 @@ const useTelegram = () => {
   }
 
   async function processTelegramCallback(body) {
-    const { message } = body;
-    const { chat, text, message_thread_id } = message
+    const { message, update_id } = body;
+    const { chat, text, message_thread_id, reply_to_message } = message
 
-    const parsedValues = formatMsg(text)
-
-    // Prepare content for google sheet
-    const sheetRows = prepareForSheetRows(parsedValues)
-    const isRowAdded = await addToSheet({rows: sheetRows})
-
-    // Prepare reply to channel
-    let reply = generateChatSummary(parsedValues)
-    reply += "\n\nGoogle Sheet: " + (isRowAdded ? "Success" : "Failed")
-
+    const emptyReply = "Kok bukan data duit? Cuekin ah.\nupdateID " + update_id
     const payload = {
-      chatId: chat.id,
-      message: reply,
+      chat_id: chat.id,
+      message: emptyReply,
       message_thread_id
     }
 
-    return await sendMessageToSupergroup(payload)
+    if (reply_to_message) {
+      payload.reply_parameters = {
+        chat_id: reply_to_message.chat.id,
+        message_id: reply_to_message.message_id
+      }
+    } // endif
+
+    // return payload
+    
+    try {
+      if (! text) {
+        return await sendMessageToSupergroup(payload)
+      } // endif
+      const parsedValues = formatMsg(text)
+
+      if (parsedValues.length < 1) {
+        return await sendMessageToSupergroup(payload)
+      } // endif
+  
+      // Prepare content for google sheet
+      const sheetRows = prepareForSheetRows(parsedValues)
+      const isRowAdded = await addToSheet({rows: sheetRows})
+  
+      // Prepare reply to channel
+      let reply = generateChatSummary(parsedValues)
+      reply += "\n\nGoogle Sheet: " + (isRowAdded ? "Success" : "Failed")
+      payload.message = reply
+  
+      return await sendMessageToSupergroup(payload)
+    } catch (e) {
+      payload.message = "Error BOSKU!, updateID " + update_id
+      return await sendMessageToSupergroup(payload)
+    }
+
   }
 
   return {

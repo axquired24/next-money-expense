@@ -66,6 +66,9 @@ const useChatLogic = () => {
    */
   
   const formatMsg = (chat) => {
+    if (! chat) {
+      return []
+    } // endif
     const valueInRow = chat.split(/\r?\n|\r|\n/g)
     const parsedValues = valueInRow.map(splitAmountDesc).filter(x => !! x)
 
@@ -101,9 +104,10 @@ const useChatLogic = () => {
     });
 
     const reply = [
-      "Siap bos, ini ringkasannya:",
-      "Total pengeluaran: **" + formatCurrency(negativeSum) + "**",
-      "Total pemasukan: **" + formatCurrency(positiveSum) + "**"
+      "Siap bos! Ringkasan:",
+      "Minus: *" + formatCurrency(negativeSum) + "*",
+      "Plus: *" + formatCurrency(positiveSum) + "*",
+      "Data Masuk: " + parsedValues.length
     ].join("\n");
 
     return reply
