@@ -1,8 +1,12 @@
 import axios from "axios";
 import useEnv from './useEnv';
+import useChatLogic from './useChatLogic';
+import useGsheet from './useGsheet';
 
 const useTelegram = () => {
-  const {getEnv} = useEnv();
+  const { getEnv } = useEnv();
+  const { formatMsg, generateChatSummary, prepareForSheetRows } = useChatLogic();
+  const { addToSheet } = useGsheet();
 
   const baseURL = getEnv().NEXT_PUBLIC_BASE_URL;
   let tokenBot = getEnv().TBOT_TOKEN;
@@ -48,7 +52,7 @@ const useTelegram = () => {
       const response = await axios.post(
         "https://api.telegram.org/bot" + tokenBot + "/setWebhook",
         {
-          url: baseURL + "/api/tcallback"
+          url: baseURL + "/api/telegram/callback"
         },
         {
           headers: {
@@ -97,12 +101,29 @@ const useTelegram = () => {
 
   async function processTelegramCallback(body) {
     const { message } = body;
-    const { chat, text, message_thread_id } = message;
+    const { chat, text, message_thread_id } = message
+
+    const parsedValues = formatMsg(text)
+
+    // Prepare content for google sheet
+    const sheetRows = prepareForSheetRows(parsedValues)
+    const isRowAdded = await addToSheet({rows: sheetRows})
+
+    // Prepare reply to channel
+    let reply = generateChatSummary(parsedValues)
+    reply += "\n\nGoogle Sheet: " + (isRowAdded ? "Success" : "Failed")
+
     const payload = {
       chatId: chat.id,
-      message: text,
+      message: reply,
       message_thread_id
     }
+
+    return {
+      sheetRows,
+      reply: reply.split("\n")
+    }
+
     return await sendMessageToSupergroup(payload)
   }
 
