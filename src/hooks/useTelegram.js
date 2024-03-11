@@ -119,11 +119,6 @@ const useTelegram = () => {
       message_thread_id
     }
 
-    return {
-      sheetRows,
-      reply: reply.split("\n")
-    }
-
     return await sendMessageToSupergroup(payload)
   }
 
