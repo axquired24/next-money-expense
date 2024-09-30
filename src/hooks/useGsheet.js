@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import moment from 'moment-timezone';
 
 const useGsheet = () => {
   const auth = new google.auth.JWT(
@@ -84,10 +85,9 @@ const useGsheet = () => {
 
   function generateSheetName() {
     // Check if the sheet "Month Year" exists
-    const currentDate = new Date();
-    const month = currentDate.toLocaleString('default', { month: 'short' });
-    const year = currentDate.getFullYear();
-    return `Cashbot ${month} ${year}`;
+    const currentDate = moment().tz("Asia/Jakarta");
+    const formattedDate = currentDate.format("MMM YYYY")
+    return `Cashbot ${formattedDate}`;
   }
   
   async function addToSheet({rows=[], sheetName=null}) {

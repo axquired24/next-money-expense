@@ -1,5 +1,4 @@
-import axios from 'axios';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import {v4 as uuidv4} from 'uuid';
 
 const useChatLogic = () => {
@@ -133,10 +132,10 @@ const useChatLogic = () => {
   }
 
   const prepareForSheetRows = (parsedValues, date, photoFileId=null) => {
-    const momentDate = moment(date * 1000)
+    const momentDate = moment(date * 1000).tz("Asia/Jakarta")
     // date, amount, desc
     return parsedValues.map((value, idx) => {
-      const currentDate = momentDate.add(1, "second")
+      const currentDate = momentDate.add(idx, "second")
       const formattedDate = currentDate.format("YYYY-MM-DD HH:mm:ss")
 
       const categoryStr = mapCategoryByDescription(value.amount, value.desc)
