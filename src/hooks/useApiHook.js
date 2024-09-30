@@ -1,28 +1,25 @@
 import axios from "axios";
 
 const useApiHook = () => {
-  const addExpense = async (records) => {
-    try {
-      const payload = records.map(({amount, uuid, desc, date}) => {
-        return {
-          fields: {
-            amount,
-            uuid,
-            item_name: desc,
-            date
-          }
-        }
-      });
-
-      await axios.post("/api/expense/add", payload)
-      return true
-    } catch (e) {
-      return false
+  const fwdToWebhookSite = async ({
+      method,
+      data
+  }) => {
+    const axiosConfig = {
+      method,
+      url: process.env.WEBHOOKSITE_URL,
+      data,
+      headers: {
+        'Accept-Encoding': 'application/json',
+        'Content-Type': 'application/json'
+      }
     }
+
+    return await axios.create(axiosConfig).catch(e => console.error("Axios fwdToWebhookSite Error", e))
   }
 
   return {
-    addExpense
+    fwdToWebhookSite
   }
 }
 

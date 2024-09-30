@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server"
 import useTelegram from '@/src/hooks/useTelegram';
+import useApiHook from "@/src/hooks/useApiHook";
 
 export async function POST(req) {
-  const {fetchTelegramMessage, removeWebhook, processTelegramCallback} = useTelegram();
+  const {processTelegramCallback} = useTelegram();
+  const { fwdToWebhookSite } = useApiHook();
   
-  // await removeWebhook();
   const body = await req.json()
+
+  fwdToWebhookSite({
+    method: "POST",
+    data: body
+  })
 
   try {
     const resp = await processTelegramCallback(body)

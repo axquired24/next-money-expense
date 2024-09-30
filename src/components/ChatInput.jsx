@@ -1,13 +1,11 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {v4 as uuidv4} from 'uuid';
-import useApiHook from "@/src/hooks/useApiHook";
 
 const ChatInput = ({setRowValues}) => {
   const inputRef = useRef();
   const dateInputRef = useRef()
   const [errMsg, setErrMsg] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const { addExpense } = useApiHook();
 
   const getDateValue = () => {
     return dateInputRef.current?.value
@@ -65,13 +63,6 @@ const ChatInput = ({setRowValues}) => {
     const parsedValues = valueInRow.map(splitAmountDesc).filter(x => !! x)
     
     if(inputValue && dateValue) {
-      // Uncomment to activate airtable
-      // setIsSyncing(true);
-      // const isOk = await addExpense(parsedValues)
-      // if (! isOk) {
-      //   setErrMsg("Failed to sync with AirTable")
-      // } // endif
-      // setIsSyncing(false);
 
       setRowValues(prev => {
         return [
@@ -84,13 +75,38 @@ const ChatInput = ({setRowValues}) => {
     } // endif
   }
 
+  function addDays(date, days) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+
+  function toYMD(date) {
+    return date.toISOString().split('T')[0]
+  }
+
+  function addDaysToInput(days) {
+    const currentDate = new Date(dateInputRef.current?.value)
+    let nextDate = addDays(currentDate, days)
+    nextDate = toYMD(nextDate)
+    console.log({currentDate, nextDate, days})
+    dateInputRef.current?.setAttribute('value', nextDate)
+  }
+
+  useEffect(() => {
+    // dateInputRef.current?.value = new Date().toISOString()
+  }, []);
+
   const inputElm = (<form method="post" className="space-y-3" onSubmit={handleSubmit}>
     <div className="text-xl font-semibold">Input Chat</div>
-    <div>
+    <div className="space-x-2">
+      <button className="p-2 hover:underline" onClick={() => addDaysToInput(-1)}>Prev</button>
       <input ref={dateInputRef} 
         name="inputdate"
         type="date"
+        value={toYMD(new Date())}
         className="px-3 py-2 input-bg-black" style={{colorScheme: "dark"}} />
+      <button className="p-2 hover:underline" onClick={() => addDaysToInput(1)}>Next</button>
     </div>
     <textarea ref={inputRef}
       className="p-4 input-bg-black"
