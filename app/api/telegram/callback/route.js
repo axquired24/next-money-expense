@@ -9,7 +9,6 @@ export async function POST(req) {
   const body = await req.json()
 
   fwdToWebhookSite({
-    method: "POST",
     data: body
   })
 

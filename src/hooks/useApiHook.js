@@ -2,20 +2,19 @@ import axios from "axios";
 
 const useApiHook = () => {
   const fwdToWebhookSite = async ({
-      method,
       data
   }) => {
-    const axiosConfig = {
-      method,
-      url: process.env.WEBHOOKSITE_URL,
-      data,
-      headers: {
-        'Accept-Encoding': 'application/json',
-        'Content-Type': 'application/json'
-      }
+    const headers = {
+      'Accept-Encoding': 'application/json',
+      'Content-Type': 'application/json'
     }
+    data.a_from = process.env.NEXT_PUBLIC_BASE_URL
 
-    return await axios.create(axiosConfig).catch(e => console.error("Axios fwdToWebhookSite Error", e))
+    const url = process.env.WEBHOOKSITE_URL
+    const axiosBase = await axios.post(url, data, headers).catch(e => {
+      console.log("Error in fwdToWebhookSite", e)
+    })
+    return axiosBase
   }
 
   return {
