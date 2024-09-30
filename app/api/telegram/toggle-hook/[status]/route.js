@@ -4,9 +4,9 @@ import useTelegram from '@/src/hooks/useTelegram';
 export async function GET(req, {params}) {
   const {removeWebhook, enableWebhook} = useTelegram();
   
-  if (params.status === 'enable') {
+  if (['enable', 'debug'].includes(params.status)) {
     try {
-      const resp = await enableWebhook();
+      const resp = await enableWebhook(params.status === 'debug');
       return NextResponse.json({status: 'Webhook Enabled', resp}, { status: 200 });
     } catch (e) {
       return NextResponse.json({status: 'Webhook Enabled', resp: e?.response?.data}, { status: 400 });

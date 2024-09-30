@@ -55,12 +55,17 @@ const useTelegram = () => {
     }
   }
 
-  async function enableWebhook() {
+  async function enableWebhook(debug=false) {
+    let url = baseURL + "/api/telegram/callback"
+    if(debug) {
+      url = process.env.WEBHOOKSITE_URL
+    } // endif
+
     try {
       const response = await axios.post(
         "https://api.telegram.org/bot" + tokenBot + "/setWebhook",
         {
-          url: baseURL + "/api/telegram/callback"
+          url
         },
         {
           headers: {
@@ -70,6 +75,7 @@ const useTelegram = () => {
       );
 
       const data = response.data;
+      data.webhook_url = url
       return data;
     } catch (error) {
       console.error("Error enabling webhook:", error);
