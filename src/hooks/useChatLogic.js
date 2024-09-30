@@ -1,3 +1,5 @@
+import axios from 'axios';
+import moment from 'moment';
 import {v4 as uuidv4} from 'uuid';
 
 const useChatLogic = () => {
@@ -6,13 +8,8 @@ const useChatLogic = () => {
     return splitted.length > 1 ? splitted[1] : splitted[0]
   }
 
-  const getToday = () => {
-    return new Date().toISOString().split('T')[0];
-  }
-
   const splitAmountDesc = (str) => {
     let amount = 0, amountStr="", desc = "";
-    const date = getToday()
 
     if (!str) {
       return null;
@@ -43,7 +40,6 @@ const useChatLogic = () => {
       amount,
       amountStr,
       desc,
-      date,
       uuid: uuidv4()
     }
   }
@@ -75,10 +71,90 @@ const useChatLogic = () => {
     return parsedValues
   }
 
-  const prepareForSheetRows = (parsedValues) => {
+  function mapCategoryByDescription (amount=0, desc="") {
+    const categories = {
+      BelanjaSerumah: "-Belanja Serumah",
+      Hiburan: "-Hiburan",
+      Bayi: "-Bayi",
+      Gift: "-Gift",
+      TabunganRumah: "-Tabungan Rumah",
+      BukanBulanan: "-Bukan Bulanan"
+    }
+    const categoriesList = Object.entries(categories).map(item => item[1]) || []
+
+    const tags = {
+      BelanjaSerumah: "#bulanan",
+      Hiburan: "#hiburan",
+      Pio: "#pio",
+      Bayi: "#bayi",
+      Gift: "#gift",
+      TabunganRumah: "#rumah",
+      BukanBulanan: "#bukanbulanan"
+    }
+    const tagsList = Object.entries(tags).map(item => item[1]) || []
+
+    let finalCategory = ""
+    if(amount < 0) {
+      finalCategory = categories.BelanjaSerumah
+    } // endif
+
+    tagsList.forEach((tag) => {
+      if(desc.includes(tag)) {
+        switch(tag) {
+          case tags.Bayi:
+          case tags.Pio:
+            finalCategory = categories.Bayi
+            break;
+          
+          case tags.Hiburan:
+            finalCategory = categories.Hiburan
+            break;
+
+          case tags.Gift:
+            finalCategory = categories.Gift
+            break;
+
+          case tags.TabunganRumah:
+            finalCategory = categories.TabunganRumah
+            break;
+
+          case tags.BukanBulanan:
+            finalCategory = categories.BukanBulanan
+            break;
+
+          default:
+            break;
+
+        }
+      } // endif
+    })
+
+    return finalCategory
+  }
+
+  const prepareForSheetRows = (parsedValues, date, photoFileId=null) => {
+    const momentDate = moment(date * 1000)
     // date, amount, desc
-    return parsedValues.map((value) => {
-      return [value.date, value.amount, value.desc]
+    return parsedValues.map((value, idx) => {
+      const currentDate = momentDate.add(1, "second")
+      const formattedDate = currentDate.format("YYYY-MM-DD HH:mm:ss")
+
+      const categoryStr = mapCategoryByDescription(value.amount, value.desc)
+      
+      // Map Utang
+      let utangNotes = ""
+      const utangTags = ["#utangsuami", "#utangistri", "#pio"]
+      if(utangTags.some(tag => value.desc.includes(tag))) {
+        utangNotes = "Belum Bayar"
+      } // endif
+
+      // Map Photo
+      let photoLink = ""
+      if(idx === 0 && photoFileId) {
+        const previewUrl = process.env.NEXT_PUBLIC_BASE_URL + "/photo?file_id=" + photoFileId
+        photoLink = `=HYPERLINK("${previewUrl}", "Lihat Foto")`
+      }
+      return [formattedDate, value.amount, value.desc, categoryStr, utangNotes, photoLink]
     });
   }
 
@@ -113,10 +189,34 @@ const useChatLogic = () => {
     return reply
   }
 
+  const getTextAndPhotoId = (message) => {
+    let text = message?.text
+    let photoFileId = null
+    let photos = []
+    
+    if(message?.photo?.length > 0) {
+      photos = message.photo
+      text = message?.caption
+    } // endif
+
+    if(message?.document?.length > 0) {
+      photos = message.document
+      text = message?.caption
+    } // endif
+
+    if (photos.length > 0) {
+      const selectedPhoto = message.photo.sort((a,b) => b.file_size - a.file_size)[0]
+      photoFileId = selectedPhoto.file_id
+    } // endif
+
+    return {text, photoFileId}
+  }
+
   return {
     formatMsg,
     generateChatSummary,
-    prepareForSheetRows
+    prepareForSheetRows,
+    getTextAndPhotoId
   }
 }
 

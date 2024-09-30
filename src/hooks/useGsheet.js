@@ -67,8 +67,8 @@ const useGsheet = () => {
   }
   
   async function initSheet(sheets, spreadsheetId, sheetName) {
-    const header = [['Date', 'Amount', 'Description', 'Category']];
-    const range = `${sheetName}!A1:D1`;
+    const header = [['Date', 'Amount', 'Description', 'Category', 'Utang?', 'Notes']];
+    const range = `${sheetName}!A1:F1`;
     try {
       const response = await sheets.spreadsheets.values.update({
         spreadsheetId,
@@ -95,7 +95,7 @@ const useGsheet = () => {
       sheetName = generateSheetName()
     } // endif
 
-    const sheetExists = await checkSheetExists(sheets, spreadsheetId, sheetName);
+    const sheetExists = await checkSheetExists(sheets, spreadsheetId, `${sheetName}!A1:F2`);
   
     if (!sheetExists) {
       // Create the sheet "Month Year" if it doesn't exist
@@ -111,7 +111,7 @@ const useGsheet = () => {
       // Calculate the range for the new data
       const startRow = lastRow + 1;
       const endRow = startRow + rows.length - 1;
-      const range = `${sheetName}!A${startRow}:C${endRow}`;
+      const range = `${sheetName}!A${startRow}:D${endRow}`;
       // Append the new data to the spreadsheet
       const response = await sheets.spreadsheets.values.append({
         spreadsheetId,

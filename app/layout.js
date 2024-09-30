@@ -1,11 +1,11 @@
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Budget Bulanan",
-  description: "Konversi chat ke tabel",
+  description: "Made by axquired24",
 };
 
 export default function RootLayout({ children }) {

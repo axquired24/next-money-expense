@@ -5,7 +5,7 @@ import useGsheet from './useGsheet';
 
 const useTelegram = () => {
   const { getEnv } = useEnv();
-  const { formatMsg, generateChatSummary, prepareForSheetRows } = useChatLogic();
+  const { formatMsg, generateChatSummary, prepareForSheetRows, getTextAndPhotoId } = useChatLogic();
   const { addToSheet } = useGsheet();
 
   const baseURL = getEnv().NEXT_PUBLIC_BASE_URL;
@@ -113,7 +113,9 @@ const useTelegram = () => {
 
   async function processTelegramCallback(body) {
     const { message, update_id } = body;
-    const { chat, text, message_thread_id, reply_to_message } = message
+    const { chat, message_thread_id, reply_to_message, date } = message
+    const {text, photoFileId} = getTextAndPhotoId(message);
+    
 
     const emptyReply = "Kok bukan data duit? Cuekin ah.\nupdateID " + update_id
     const payload = {
@@ -129,20 +131,26 @@ const useTelegram = () => {
       }
     } // endif
 
-    // return payload
+    async function respError(payloadParam) {
+      await sendMessageToSupergroup(payloadParam)
+      return [
+        {"isError": true}
+      ]
+    }
     
     try {
       if (! text) {
-        return await sendMessageToSupergroup(payload)
+        return respError(payload)
       } // endif
       const parsedValues = formatMsg(text)
 
       if (parsedValues.length < 1) {
-        return await sendMessageToSupergroup(payload)
+        return respError(payload)
       } // endif
   
       // Prepare content for google sheet
-      const sheetRows = prepareForSheetRows(parsedValues)
+      const sheetRows = prepareForSheetRows(parsedValues, date, photoFileId)
+      console.log({sheetRows})
       const isRowAdded = await addToSheet({rows: sheetRows})
   
       // Prepare reply to channel
@@ -150,10 +158,26 @@ const useTelegram = () => {
       reply += "\n\nGoogle Sheet: " + (isRowAdded ? "Success" : "Failed")
       payload.message = reply
   
-      return await sendMessageToSupergroup(payload)
+      await sendMessageToSupergroup(payload)
+
+      return sheetRows;
     } catch (e) {
       payload.message = "Error BOSKU!, updateID " + update_id
-      return await sendMessageToSupergroup(payload)
+      return respError(payload)
+    }
+
+  }
+
+  const getFileUrl = async (photoFileId) => {
+    const fileDetailApiUrl = `https://api.telegram.org/bot${process.env.TBOT_TOKEN}/getFile?file_id=${photoFileId}`
+    try {
+      const fileDetailApi = await axios.get(fileDetailApiUrl)
+      const filePath = fileDetailApi?.data?.result?.file_path
+      const fileUrl = `https://api.telegram.org/file/bot${process.env.TBOT_TOKEN}/${filePath}`
+      return fileUrl
+    } catch (e) { 
+      console.log(e)
+      return ""
     }
 
   }
@@ -164,7 +188,8 @@ const useTelegram = () => {
     updateTokenBot,
     fetchTelegramMessage,
     sendMessageToSupergroup,
-    processTelegramCallback
+    processTelegramCallback,
+    getFileUrl
   };
 };
 
