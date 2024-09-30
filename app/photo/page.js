@@ -4,8 +4,7 @@ import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
-const loadingImgStr = "loading-image"
-const PhotoPage = () => {
+const PhotoElm = () => {
   const params = useSearchParams();
   const [imageUrl, setImageUrl] = useState(loadingImgStr);
 
@@ -22,14 +21,19 @@ const PhotoPage = () => {
     }
   }, [params]);
 
+  return imageUrl === loadingImgStr ? <span>Tunggu sebentar ...</span>
+  : <img src={imageUrl} alt="Preview Image" />
+}
+
+const loadingImgStr = "loading-image"
+const PhotoPage = () => {
+  
+
   return (
     <div className="bg-black p-4 text-white">
       <div className="mb-4 text-xs">Image Preview </div>
       <Suspense>
-        {
-          imageUrl === loadingImgStr ? <span>Tunggu sebentar ...</span>
-          : <img src={imageUrl} alt="Preview Image" />
-        }
+        <PhotoElm />
       </Suspense>
     </div>
   );
