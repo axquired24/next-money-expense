@@ -113,8 +113,9 @@ const useTelegram = () => {
 
   async function processTelegramCallback(body) {
     const { message, update_id } = body;
-    const { chat, message_thread_id, reply_to_message, date } = message
-    const {text, photoFileId} = getTextAndPhotoId(message);
+    const { chat, message_thread_id, date } = message
+    const reply_to_message = message?.reply_to_message
+    const { text, photoFileId } = getTextAndPhotoId(message);
     
 
     const emptyReply = "Kok bukan data duit? Cuekin ah.\nupdateID " + update_id
