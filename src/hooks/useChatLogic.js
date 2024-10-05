@@ -136,7 +136,7 @@ const useChatLogic = () => {
     // date, amount, desc
     return parsedValues.map((value, idx) => {
       const currentDate = momentDate.add(idx, "second")
-      const formattedDate = currentDate.format("YYYY-MM-DD HH:mm:ss")
+      const formattedDate = currentDate.format("YYYY-MM-DD")
 
       const categoryStr = mapCategoryByDescription(value.amount, value.desc)
       
