@@ -118,7 +118,7 @@ const useTelegram = () => {
     const { text, photoFileId } = getTextAndPhotoId(message);
     
 
-    const emptyReply = "Kok bukan data duit? Cuekin ah.\nupdateID " + update_id
+    const emptyReply = "Gak kenal chatnya.\nupdateID " + update_id
     const payload = {
       chat_id: chat.id,
       message: emptyReply,

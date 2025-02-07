@@ -77,7 +77,8 @@ const useChatLogic = () => {
       Bayi: "-Bayi",
       Gift: "-Gift",
       TabunganRumah: "-Tabungan Rumah",
-      BukanBulanan: "-Bukan Bulanan"
+      BukanBulanan: "-Bukan Bulanan",
+      Ngantor: "-Ngantor",
     }
     const categoriesList = Object.entries(categories).map(item => item[1]) || []
 
@@ -88,7 +89,8 @@ const useChatLogic = () => {
       Bayi: "#bayi",
       Gift: "#gift",
       TabunganRumah: "#rumah",
-      BukanBulanan: "#bukanbulanan"
+      BukanBulanan: "#bukanbulanan",
+      Ngantor: "#ngantor",
     }
     const tagsList = Object.entries(tags).map(item => item[1]) || []
 
@@ -119,6 +121,10 @@ const useChatLogic = () => {
 
           case tags.BukanBulanan:
             finalCategory = categories.BukanBulanan
+            break;
+
+          case tags.Ngantor:
+            finalCategory = categories.Ngantor
             break;
 
           default:
@@ -179,7 +185,7 @@ const useChatLogic = () => {
     });
 
     const reply = [
-      "Siap bos! Ringkasan:",
+      "Noted. Ringkasan:",
       "Minus: *" + formatCurrency(negativeSum) + "*",
       "Plus: *" + formatCurrency(positiveSum) + "*",
       "Data Masuk: " + parsedValues.length
