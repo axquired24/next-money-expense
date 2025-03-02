@@ -85,6 +85,7 @@ const useChatLogic = () => {
     const tags = {
       BelanjaSerumah: "#bulanan",
       Hiburan: "#hiburan",
+      Hamil: "#hamil",
       Pio: "#pio",
       Bayi: "#bayi",
       Gift: "#gift",
@@ -107,6 +108,7 @@ const useChatLogic = () => {
             finalCategory = categories.Bayi
             break;
           
+          case tags.Hamil:
           case tags.Hiburan:
             finalCategory = categories.Hiburan
             break;
@@ -148,7 +150,7 @@ const useChatLogic = () => {
       
       // Map Utang
       let utangNotes = ""
-      const utangTags = ["#utangsuami", "#utangistri", "#pio"]
+      const utangTags = ["#utang", "#utang", "#pio"]
       if(utangTags.some(tag => value.desc.includes(tag))) {
         utangNotes = "Belum Bayar"
       } // endif
