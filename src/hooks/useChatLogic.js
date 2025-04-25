@@ -79,6 +79,7 @@ const useChatLogic = () => {
       TabunganRumah: "-Tabungan Rumah",
       BukanBulanan: "-Bukan Bulanan",
       Ngantor: "-Ngantor",
+      Nocat: "",
     }
     const categoriesList = Object.entries(categories).map(item => item[1]) || []
 
@@ -92,6 +93,7 @@ const useChatLogic = () => {
       TabunganRumah: "#rumah",
       BukanBulanan: "#bukanbulanan",
       Ngantor: "#ngantor",
+      Nocat: "#nocat"
     }
     const tagsList = Object.entries(tags).map(item => item[1]) || []
 
@@ -129,6 +131,10 @@ const useChatLogic = () => {
             finalCategory = categories.Ngantor
             break;
 
+          case tags.Nocat:
+            finalCategory = categories.Nocat
+            break;
+
           default:
             break;
 
@@ -150,7 +156,7 @@ const useChatLogic = () => {
       
       // Map Utang
       let utangNotes = ""
-      const utangTags = ["#utang", "#utang", "#pio"]
+      const utangTags = ["#utang", "#pio"]
       if(utangTags.some(tag => value.desc.includes(tag))) {
         utangNotes = "Belum Bayar"
       } // endif
