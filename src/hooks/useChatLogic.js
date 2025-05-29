@@ -159,6 +159,7 @@ const useChatLogic = () => {
       if(idx === 0 && photoFileId) {
         const previewUrl = process.env.NEXT_PUBLIC_BASE_URL + "/photo?file_id=" + photoFileId
         photoLink = `=HYPERLINK("${previewUrl}", "Lihat Foto")`
+        // @TODO(albert): udah breakdown kalo valid nota nya
         hasBreakDown = "Udah breakdown"
       }
       return [formattedDate, value.amount, value.desc, categoryStr, hasBreakDown, photoLink]

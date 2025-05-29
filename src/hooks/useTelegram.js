@@ -201,8 +201,12 @@ const useTelegram = () => {
 
   }
 
+  const getFilePreviewUrl = (photoFileId) => {
+    return process.env.NEXT_PUBLIC_BASE_URL + "/photo?file_id=" + photoFileId
+  }
+
   const processPhoto = async (photoFileId, message) => {
-    const fileUrl = await getFileUrl(photoFileId)
+    const fileUrl = getFilePreviewUrl(photoFileId)
     const extractedValues = await extractReceiptData(fileUrl)
     const { chat, message_thread_id, date } = message
 
