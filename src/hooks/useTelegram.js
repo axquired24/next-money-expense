@@ -151,21 +151,20 @@ const useTelegram = () => {
         isHavingTextToProcess = false
       } // endif
 
+      let sheetRowFromImg = []
       if (photoFileId) {
         // Notify processing image
         payload.message = "Nota lagi di proses Bos!"
         await sendMessageToSupergroup(payload)
-        processPhoto(photoFileId, message)
+        sheetRowFromImg = await processPhoto(photoFileId, message)
       } // endif
 
       if (! isHavingTextToProcess) {
-        if(! photoFileId) {
-          await sendMessageToSupergroup(payload)
+        if(sheetRowFromImg.length > 0) {
+          return sheetRowFromImg
+        } else {
+          return respError(payload)
         } // endif
-        
-        return [
-          {"isError": true}
-        ]
       } // endif
   
       // Prepare content for google sheet
@@ -180,7 +179,7 @@ const useTelegram = () => {
   
       await sendMessageToSupergroup(payload)
 
-      return sheetRows;
+      return [...sheetRows, ...sheetRowFromImg];
     } catch (e) {
       payload.message = "Error BOSKU!, updateID " + update_id
       return respError(payload)
@@ -204,7 +203,7 @@ const useTelegram = () => {
 
   const processPhoto = async (photoFileId, message) => {
     const fileUrl = await getFileUrl(photoFileId)
-    const parsedValues = await extractReceiptData(fileUrl)
+    const extractedValues = await extractReceiptData(fileUrl)
     const { chat, message_thread_id, date } = message
 
     const payload = {
@@ -213,11 +212,13 @@ const useTelegram = () => {
       message_thread_id
     }
 
-    if (parsedValues[0] === "kosong") {
+    if (extractedValues[0] === "kosong") {
       payload.message = "Yah, nota gabisa dibaca Bos!"
       await sendMessageToSupergroup(payload)
       return false
     } // endif
+
+    const parsedValues = formatMsg(extractedValues.join("\n"))
 
     // Prepare content for google sheet
     const sheetRows = prepareForSheetRows(parsedValues, date)
@@ -226,9 +227,9 @@ const useTelegram = () => {
 
     // Prepare reply to channel
     const replies = [
-      "Nota diproses: " + fileUrl,
-      ...parsedValues,
-      "--------------\n",
+      "Nota diproses: " + fileUrl + "\n",
+      ...extractedValues,
+      "\n--------------",
       generateChatSummary(parsedValues),
       "\nGoogle Sheet: " + (isRowAdded ? "Success" : "Failed")
     ]
