@@ -2,6 +2,7 @@ import axios from "axios";
 import useEnv from './useEnv';
 import useChatLogic from './useChatLogic';
 import useGsheet from './useGsheet';
+import { extractReceiptData } from "@/app/api/telegram/readimage-ai/ReadImageUsingAI";
 
 const useTelegram = () => {
   const { getEnv } = useEnv();
@@ -118,7 +119,7 @@ const useTelegram = () => {
     const { text, photoFileId } = getTextAndPhotoId(message);
     
 
-    const emptyReply = "Gak kenal chatnya.\nupdateID " + update_id
+    const emptyReply = "gak ada teks apa2 bos.\nupdateID " + update_id
     const payload = {
       chat_id: chat.id,
       message: emptyReply,
@@ -140,13 +141,31 @@ const useTelegram = () => {
     }
     
     try {
+      let isHavingTextToProcess = true
       if (! text) {
-        return respError(payload)
+        isHavingTextToProcess = false
       } // endif
       const parsedValues = formatMsg(text)
 
       if (parsedValues.length < 1) {
-        return respError(payload)
+        isHavingTextToProcess = false
+      } // endif
+
+      if (photoFileId) {
+        // Notify processing image
+        payload.message = "Nota lagi di proses Bos!"
+        await sendMessageToSupergroup(payload)
+        processPhoto(photoFileId, message)
+      } // endif
+
+      if (! isHavingTextToProcess) {
+        if(! photoFileId) {
+          await sendMessageToSupergroup(payload)
+        } // endif
+        
+        return [
+          {"isError": true}
+        ]
       } // endif
   
       // Prepare content for google sheet
@@ -181,6 +200,42 @@ const useTelegram = () => {
       return ""
     }
 
+  }
+
+  const processPhoto = async (photoFileId, message) => {
+    const fileUrl = await getFileUrl(photoFileId)
+    const parsedValues = await extractReceiptData(fileUrl)
+    const { chat, message_thread_id, date } = message
+
+    const payload = {
+      chat_id: chat.id,
+      message: "",
+      message_thread_id
+    }
+
+    if (parsedValues[0] === "kosong") {
+      payload.message = "Yah, nota gabisa dibaca Bos!"
+      await sendMessageToSupergroup(payload)
+      return false
+    } // endif
+
+    // Prepare content for google sheet
+    const sheetRows = prepareForSheetRows(parsedValues, date)
+    console.log({sheetRows})
+    const isRowAdded = await addToSheet({rows: sheetRows})
+
+    // Prepare reply to channel
+    const replies = [
+      "Nota diproses: " + fileUrl,
+      ...parsedValues,
+      "--------------\n",
+      generateChatSummary(parsedValues),
+      "\nGoogle Sheet: " + (isRowAdded ? "Success" : "Failed")
+    ]
+    payload.message = replies.join("\n")
+
+    await sendMessageToSupergroup(payload)
+    return sheetRows;
   }
 
   return {
