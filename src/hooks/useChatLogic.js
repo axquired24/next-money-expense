@@ -153,21 +153,15 @@ const useChatLogic = () => {
       const formattedDate = currentDate.format("YYYY-MM-DD")
 
       const categoryStr = mapCategoryByDescription(value.amount, value.desc)
-      
-      // Map Utang
-      let utangNotes = ""
-      const utangTags = ["#utang", "#pio"]
-      if(utangTags.some(tag => value.desc.includes(tag))) {
-        utangNotes = "Belum Bayar"
-      } // endif
-
       // Map Photo
       let photoLink = ""
+      let hasBreakDown = ""
       if(idx === 0 && photoFileId) {
         const previewUrl = process.env.NEXT_PUBLIC_BASE_URL + "/photo?file_id=" + photoFileId
         photoLink = `=HYPERLINK("${previewUrl}", "Lihat Foto")`
+        hasBreakDown = "Udah breakdown"
       }
-      return [formattedDate, value.amount, value.desc, categoryStr, utangNotes, photoLink]
+      return [formattedDate, value.amount, value.desc, categoryStr, hasBreakDown, photoLink]
     });
   }
 
