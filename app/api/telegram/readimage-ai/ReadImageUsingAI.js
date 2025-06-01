@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import axios from 'axios';
+import { fileTypeFromBuffer } from 'file-type';
 
 const GEMINI_CONFIG = {
   API_KEY: process.env.GEMINI_API_KEY,
@@ -8,6 +9,7 @@ const GEMINI_CONFIG = {
 
 async function getImageBufferFromUrl(url) {
   try {
+    console.log("getImageBufferFromUrl", url)
     const response = await axios({
       method: 'GET',
       url,
@@ -17,8 +19,8 @@ async function getImageBufferFromUrl(url) {
     
     return Buffer.from(response.data, 'binary');
   } catch (error) {
-    console.error('Error downloading image:', error);
-    throw new Error(`Failed to download image: ${error.message}`);
+    console.error('Error getImageBufferFromUrl:', error.message);
+    throw new Error(`Error getImageBufferFromUrl: ${error.message}`);
   }
 }
 
@@ -36,6 +38,12 @@ export async function extractReceiptData(imageUrl) {
 
     // Download image
     const imageBuffer = await getImageBufferFromUrl(imageUrl);
+
+    // Convert image to base64 and detect MIME type
+    const fileType = await fileTypeFromBuffer(imageBuffer);
+    if (!fileType) {
+      throw new Error('Could not determine file type');
+    }
 
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(GEMINI_CONFIG.API_KEY);
@@ -62,7 +70,7 @@ Example output:
 
     // Convert image to base64
     const base64Image = imageBuffer.toString('base64');
-    const mimeType = 'image/jpeg';
+    const mimeType = fileType.mime;
     
     // Process with Gemini
     const result = await model.generateContent([
@@ -82,8 +90,8 @@ Example output:
     return formattedResult.length > 0 ? formattedResult : ["kosong"];
     
   } catch (error) {
-    console.error('Error processing receipt:', error);
-    throw new Error(`Failed to process receipt: ${error.message}`);
+    console.error('Error extractReceiptData:', error.message);
+    throw new Error(`Error extractReceiptData: ${error.message}`);
   }
 }
 

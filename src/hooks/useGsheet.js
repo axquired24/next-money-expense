@@ -25,7 +25,7 @@ const useGsheet = () => {
       const sheetExists = response.data.sheets.length > 0;
       return sheetExists;
     } catch (error) {
-      console.error(`Error checking if sheet "${sheetName}" exists:`, error);
+      console.error(`Error checkSheetExists "${sheetName}" exists:`, error.message);
       return false;
     }
   }
@@ -60,10 +60,10 @@ const useGsheet = () => {
       },
     };
     try {
-      const response = await sheets.spreadsheets.batchUpdate(request);
+      await sheets.spreadsheets.batchUpdate(request);
       console.log(`Sheet "${sheetName}" created successfully.`);
     } catch (error) {
-      console.error(`Error creating sheet "${sheetName}":`, error);
+      console.error(`Error createSheet "${sheetName}":`, error.message);
     }
   }
   
@@ -71,7 +71,7 @@ const useGsheet = () => {
     const header = [['Date', 'Amount', 'Description', 'Category', 'Utang?', 'Notes']];
     const range = `${sheetName}!A1:F1`;
     try {
-      const response = await sheets.spreadsheets.values.update({
+      await sheets.spreadsheets.values.update({
         spreadsheetId,
         range,
         valueInputOption: 'USER_ENTERED',
@@ -79,7 +79,7 @@ const useGsheet = () => {
       });
       console.log(`Sheet "${sheetName}" initialized successfully.`);
     } catch (error) {
-      console.error(`Error initializing sheet "${sheetName}":`, error);
+      console.error(`Error initSheet "${sheetName}":`, error.message);
     }
   }
 
@@ -113,7 +113,7 @@ const useGsheet = () => {
       const endRow = startRow + rows.length - 1;
       const range = `${sheetName}!A${startRow}:D${endRow}`;
       // Append the new data to the spreadsheet
-      const response = await sheets.spreadsheets.values.append({
+      sheets.spreadsheets.values.append({
         spreadsheetId,
         range,
         valueInputOption: 'USER_ENTERED',
@@ -122,7 +122,7 @@ const useGsheet = () => {
   
       return true
     } catch (error) {
-      console.error(`Error adding data to sheet "${sheetName}":`, error);
+      console.error(`Error addToSheet "${sheetName}":`, error.message);
       return false
     }
   }

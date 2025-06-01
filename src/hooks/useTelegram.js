@@ -119,20 +119,19 @@ const useTelegram = () => {
     const { text, photoFileId } = getTextAndPhotoId(message);
     
 
-    const emptyReply = "gak ada teks apa2 bos.\nupdateID " + update_id
+    const emptyReply = "(text) gak ada teks apa2 bos.\nupdateID " + update_id
     const payload = {
       chat_id: chat.id,
       message: emptyReply,
       message_thread_id
     }
 
-    if (reply_to_message) {
-      payload.reply_parameters = {
-        chat_id: reply_to_message.chat.id,
-        message_id: reply_to_message.message_id
-      }
-    } // endif
-
+    // reply reference
+    payload.reply_parameters = {
+      chat_id: chat.id,
+      message_id: message.message_id
+    }
+    
     async function respError(payloadParam) {
       await sendMessageToSupergroup(payloadParam)
       return [
@@ -154,7 +153,7 @@ const useTelegram = () => {
       let sheetRowFromImg = []
       if (photoFileId) {
         // Notify processing image
-        payload.message = "Nota lagi di proses Bos!"
+        payload.message = "(nota) lagi di proses Bos!"
         await sendMessageToSupergroup(payload)
         sheetRowFromImg = await processPhoto(photoFileId, message)
       } // endif
@@ -169,11 +168,11 @@ const useTelegram = () => {
   
       // Prepare content for google sheet
       const sheetRows = prepareForSheetRows(parsedValues, date, photoFileId)
-      console.log({sheetRows})
       const isRowAdded = await addToSheet({rows: sheetRows})
   
       // Prepare reply to channel
-      let reply = generateChatSummary(parsedValues)
+      let reply = "(text) " 
+      reply += generateChatSummary(parsedValues)
       reply += "\n\nGoogle Sheet: " + (isRowAdded ? "Success" : "Failed")
       payload.message = reply
   
@@ -181,7 +180,7 @@ const useTelegram = () => {
 
       return [...sheetRows, ...sheetRowFromImg];
     } catch (e) {
-      payload.message = "Error BOSKU!, updateID " + update_id
+      payload.message = "(text) Error, updateID " + update_id
       return respError(payload)
     }
 
@@ -201,12 +200,8 @@ const useTelegram = () => {
 
   }
 
-  const getFilePreviewUrl = (photoFileId) => {
-    return process.env.NEXT_PUBLIC_BASE_URL + "/photo?file_id=" + photoFileId
-  }
-
   const processPhoto = async (photoFileId, message) => {
-    const fileUrl = getFilePreviewUrl(photoFileId)
+    const fileUrl = await getFileUrl(photoFileId)
     const extractedValues = await extractReceiptData(fileUrl)
     const { chat, message_thread_id, date } = message
 
@@ -217,7 +212,7 @@ const useTelegram = () => {
     }
 
     if (extractedValues[0] === "kosong") {
-      payload.message = "Yah, nota gabisa dibaca Bos!"
+      payload.message = "(nota), yah gabisa dibaca Bos!"
       await sendMessageToSupergroup(payload)
       return false
     } // endif
@@ -231,7 +226,7 @@ const useTelegram = () => {
 
     // Prepare reply to channel
     const replies = [
-      "Nota diproses: " + fileUrl + "\n",
+      "(nota) diproses: \n",
       ...extractedValues,
       "\n--------------",
       generateChatSummary(parsedValues),
