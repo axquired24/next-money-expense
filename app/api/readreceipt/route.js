@@ -48,9 +48,12 @@ Expektasi hasil:
 -13k Grand Mineral Galon
 -10k snack milna bayi #pio
 3,1k voucher zwitsal
+0,5k disc item
 
-Diluar scope:
-Cek jenis file, apabila bukan nota maka kembalikan "bukan-nota"`;
+Poin Penting:
+- Selalu kembalikan nominal dengan k, misal 500 maka hasilnya "0,5k"
+- Abaikan total barang, total diskon dsb, hanya catat item pembelian dan diskon/voucher bila ada
+- Cek jenis file, apabila bukan nota maka kembalikan "bukan-nota"`;
 
     // Convert image to base64
     const base64Image = imageBuffer.toString('base64');
